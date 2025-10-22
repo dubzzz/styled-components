@@ -68,7 +68,7 @@ function useInjectedStyle<T extends ExecutionContext>(
   );
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  React.useInsertionEffect(() => {
+  (React as any).useInsertionEffect(() => {
     componentStyle.flushStyles(ssc.styleSheet);
   });
 
