@@ -53,7 +53,7 @@ export default function createGlobalStyle<Props extends object>(
     }
 
     if (!__SERVER__) {
-      React.useLayoutEffect(() => {
+      (React as any).useInsertionEffect(() => {
         if (!ssc.styleSheet.server) {
           renderStyles(instance, props, ssc.styleSheet, theme, ssc.stylis);
           return () => globalStyle.removeStyles(instance, ssc.styleSheet);

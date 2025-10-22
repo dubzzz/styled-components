@@ -19,6 +19,7 @@ export default class ComponentStyle {
   isStatic: boolean;
   rules: RuleSet<any>;
   staticRulesId: string;
+  buffer: [name: string, rules: string[]][] = [];
 
   constructor(rules: RuleSet<any>, componentId: string, baseStyle?: ComponentStyle | undefined) {
     this.rules = rules;
@@ -57,7 +58,7 @@ export default class ComponentStyle {
 
         if (!styleSheet.hasNameForId(this.componentId, name)) {
           const cssStaticFormatted = stylis(cssStatic, `.${name}`, undefined, this.componentId);
-          styleSheet.insertRules(this.componentId, name, cssStaticFormatted);
+          this.buffer.push([name, cssStaticFormatted]);
         }
 
         names = joinStrings(names, name);
@@ -88,11 +89,8 @@ export default class ComponentStyle {
         const name = generateName(dynamicHash >>> 0);
 
         if (!styleSheet.hasNameForId(this.componentId, name)) {
-          styleSheet.insertRules(
-            this.componentId,
-            name,
-            stylis(css, `.${name}`, undefined, this.componentId)
-          );
+          const cssFormatted = stylis(css, `.${name}`, undefined, this.componentId);
+          this.buffer.push([name, cssFormatted]);
         }
 
         names = joinStrings(names, name);
@@ -100,5 +98,16 @@ export default class ComponentStyle {
     }
 
     return names;
+  }
+
+  flushStyles(styleSheet: StyleSheet) {
+    for (let i = 0; i < this.buffer.length; i++) {
+      const [name, rules] = this.buffer[i];
+
+      if (!styleSheet.hasNameForId(this.componentId, name)) {
+        styleSheet.insertRules(this.componentId, name, rules);
+      }
+    }
+    this.buffer.length = 0;
   }
 }

@@ -67,6 +67,11 @@ function useInjectedStyle<T extends ExecutionContext>(
     ssc.stylis
   );
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  (React as any).useInsertionEffect(() => {
+    componentStyle.flushStyles(ssc.styleSheet);
+  });
+
   if (process.env.NODE_ENV !== 'production') useDebugValue(className);
 
   return className;
