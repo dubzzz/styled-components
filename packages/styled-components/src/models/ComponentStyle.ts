@@ -19,6 +19,7 @@ export default class ComponentStyle {
   isStatic: boolean;
   rules: RuleSet<any>;
   staticRulesId: string;
+  buffer: [name: string, rules: string[]][] = [];
 
   constructor(rules: RuleSet<any>, componentId: string, baseStyle?: ComponentStyle | undefined) {
     this.rules = rules;
@@ -39,11 +40,10 @@ export default class ComponentStyle {
   generateAndInjectStyles(
     executionContext: ExecutionContext,
     styleSheet: StyleSheet,
-    stylis: Stringifier,
-    insertionEffectBuffer: [name: string, rules: string[]][]
+    stylis: Stringifier
   ): string {
     let names = this.baseStyle
-      ? this.baseStyle.generateAndInjectStyles(executionContext, styleSheet, stylis, insertionEffectBuffer)
+      ? this.baseStyle.generateAndInjectStyles(executionContext, styleSheet, stylis)
       : '';
 
     // force dynamic classnames if user-supplied stylis plugins are in use
@@ -58,7 +58,7 @@ export default class ComponentStyle {
 
         if (!styleSheet.hasNameForId(this.componentId, name)) {
           const cssStaticFormatted = stylis(cssStatic, `.${name}`, undefined, this.componentId);
-          insertionEffectBuffer.push([name, cssStaticFormatted]);
+          this.buffer.push([name, cssStaticFormatted]);
         }
 
         names = joinStrings(names, name);
@@ -90,7 +90,7 @@ export default class ComponentStyle {
 
         if (!styleSheet.hasNameForId(this.componentId, name)) {
           const cssFormatted = stylis(css, `.${name}`, undefined, this.componentId);
-          insertionEffectBuffer.push([name, cssFormatted]);
+          this.buffer.push([name, cssFormatted]);
         }
 
         names = joinStrings(names, name);
@@ -100,13 +100,14 @@ export default class ComponentStyle {
     return names;
   }
 
-  flushStyles(buffer: [name: string, rules: string[]][], styleSheet: StyleSheet) {
-    for (let i = 0; i < buffer.length; i++) {
-      const [name, rules] = buffer[i];
+  flushStyles(styleSheet: StyleSheet) {
+    for (let i = 0; i < this.buffer.length; i++) {
+      const [name, rules] = this.buffer[i];
 
       if (!styleSheet.hasNameForId(this.componentId, name)) {
         styleSheet.insertRules(this.componentId, name, rules);
       }
     }
+    this.buffer.length = 0;
   }
 }

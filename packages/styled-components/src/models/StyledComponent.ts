@@ -61,19 +61,15 @@ function useInjectedStyle<T extends ExecutionContext>(
 ) {
   const ssc = useStyleSheetContext();
 
-  const insertionEffectBuffer: [name: string, rules: string[]][] = [];
   const className = componentStyle.generateAndInjectStyles(
     resolvedAttrs,
     ssc.styleSheet,
-    ssc.stylis,
-    insertionEffectBuffer
+    ssc.stylis
   );
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   React.useInsertionEffect(() => {
-    if (insertionEffectBuffer.length > 0) {
-      componentStyle.flushStyles(insertionEffectBuffer, ssc.styleSheet);
-    }
+    componentStyle.flushStyles(ssc.styleSheet);
   });
 
   if (process.env.NODE_ENV !== 'production') useDebugValue(className);
